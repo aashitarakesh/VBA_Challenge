@@ -1,0 +1,196 @@
+
+
+Option Explicit
+ Dim CurrentWs As Worksheet
+Sub WorksheetLoop()
+   
+   ' Loop through all of the worksheets in the active workbook
+         For Each CurrentWs In Worksheets
+
+   ' Call the script to loop through all stocks in one year
+            WallStreet
+            
+    ' Display the worksheet name in a message box
+            MsgBox CurrentWs.Name
+            
+         Next
+
+      End Sub
+
+
+
+'Create a script that will loop through all the stocks for one year and output the following information.
+
+  '* The ticker symbol.
+
+  '* Yearly change from opening price at the beginning of a given year to the closing price at the end of that year.
+
+  '* The percent change from opening price at the beginning of a given year to the closing price at the end of that year.
+
+  '* The total stock volume of the stock.
+
+   '* Have conditional formatting that will highlight positive change in green and negative change in red.
+
+        Sub WallStreet()
+
+'Set Initial Variables
+
+        Dim Ticker_Name As String
+        
+        Dim Yearly_Change As Double
+        Yearly_Change = 0
+        
+        Dim Percent_Change As Double
+        Percent_Change = 0
+        
+        Dim Total_Stock_Volume As Double
+        Total_Stock_Volume = 0
+        Dim LastRow As Long
+        Dim i As Long
+        
+        
+ 'Set Variables for yearly and percent price changes
+        Dim open_price As Double
+        open_price = CurrentWs.Cells(2, 3).Value
+    
+        Dim close_price As Double
+        
+'Set Variables for Bonus
+Dim Greatest_PercentIncrease As Double
+Greatest_PercentIncrease = 0
+Dim Greatest_PercentDecrease As Double
+Greatest_PercentDecrease = 0
+Dim Greatest_TotalVolume As Double
+Greatest_TotalVolume = 0
+Dim Greatest_Ticker_Name As String
+Dim Smallest_Ticker_Name As String
+Dim Greatest_Volume_Ticker_Name As String
+    
+' Determine the Last Row
+        'LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        LastRow = CurrentWs.Cells(Rows.Count, 1).End(xlUp).Row
+
+'Keep track of the location for each ticker in the summary table
+
+        Dim Summary_Table_Row As Integer
+        Summary_Table_Row = 2
+        
+ 'Call to Insert Summary_Table Headers
+        InsertHeaders
+ 
+ 'Loop through all tickers
+        For i = 2 To LastRow
+
+' Check if we are still within the same Ticker, if it is not...
+        If CurrentWs.Cells(i + 1, 1).Value <> CurrentWs.Cells(i, 1).Value Then
+
+' Set the Ticker name
+     Ticker_Name = CurrentWs.Cells(i, 1).Value
+
+' Set Yearly Change
+        close_price = CurrentWs.Cells(i, 6).Value
+      Yearly_Change = close_price - open_price
+      
+'Set Conditional Formatting for positive and negative yearly change values
+
+        If (Yearly_Change > 0) Then
+         CurrentWs.Range("K" & Summary_Table_Row).Interior.ColorIndex = 4
+        ElseIf (Yearly_Change <= 0) Then
+         CurrentWs.Range("K" & Summary_Table_Row).Interior.ColorIndex = 3
+        End If
+        
+'Set Percent Change and condition when Open_price equals zero
+        If open_price <> 0 Then
+        Percent_Change = Yearly_Change / open_price
+        Else
+         MsgBox ("Fix value in <Open>field")
+         
+        End If
+        
+' Set Total Stock Volume
+
+        Total_Stock_Volume = Total_Stock_Volume + CurrentWs.Cells(i, 7).Value
+        
+' Print the Ticker_Name in the Summary Table
+       CurrentWs.Range("J" & Summary_Table_Row).Value = Ticker_Name
+
+' Print the Yearly_Change to the Summary Table
+       CurrentWs.Range("K" & Summary_Table_Row).Value = Yearly_Change
+    
+     ' Print the Percentage_Change to the Summary Table
+       CurrentWs.Range("L" & Summary_Table_Row).Value = Percent_Change
+      'Range("L" & Summary_Table_Row).Style = "Percent"
+       CurrentWs.Range("L" & Summary_Table_Row).NumberFormat = "0.00%"
+     
+          
+' Print the Total_Stock_Volume to the Summary Table
+      CurrentWs.Range("M" & Summary_Table_Row).Value = Total_Stock_Volume
+
+  ' Add one to the summary table row
+      Summary_Table_Row = Summary_Table_Row + 1
+      
+ ' Reset Values
+      Yearly_Change = 0
+      close_price = 0
+      open_price = CurrentWs.Cells(i + 1, 3).Value
+      
+     'Bonus Question: Set Greatest % Increase,Greatest % Decrease and Greatest Total Volume
+     
+      If (Percent_Change > Greatest_PercentIncrease) Then
+            Greatest_PercentIncrease = Percent_Change
+            Greatest_Ticker_Name = Ticker_Name
+        ElseIf (Percent_Change < Greatest_PercentDecrease) Then
+            Greatest_PercentDecrease = Percent_Change
+                 Smallest_Ticker_Name = Ticker_Name
+        End If
+            
+        If (Total_Stock_Volume > Greatest_TotalVolume) Then
+            Greatest_TotalVolume = Total_Stock_Volume
+            Greatest_Volume_Ticker_Name = Ticker_Name
+        End If
+               
+      ' Reset Values
+        Percent_Change = 0
+        Total_Stock_Volume = 0
+    
+    'Bonus Question: Print Greatest % Increase,Greatest % Decrease and Greatest Total Volume
+    
+     CurrentWs.Range("Q2").Value = Greatest_Ticker_Name
+     CurrentWs.Range("Q3").Value = Smallest_Ticker_Name
+     CurrentWs.Range("Q4").Value = Greatest_Volume_Ticker_Name
+     CurrentWs.Range("R2").Value = Greatest_PercentIncrease
+     CurrentWs.Range("R2").NumberFormat = "0.00%"
+     CurrentWs.Range("R3").Value = Greatest_PercentDecrease
+     CurrentWs.Range("R3").NumberFormat = "0.00%"
+     CurrentWs.Range("R4").Value = Greatest_TotalVolume
+      
+    ' If the cell immediately following a row is the same Ticker..
+    Else
+
+      ' Add to the Total_Stock_Volume
+      Total_Stock_Volume = Total_Stock_Volume + CurrentWs.Cells(i, 7).Value
+
+    End If
+
+  Next i
+
+End Sub
+
+Sub InsertHeaders()
+
+'Inserting Summary Column headers
+          CurrentWs.Range("J1").Value = "Ticker"
+          CurrentWs.Range("K1").Value = "Yearly Change"
+          CurrentWs.Range("L1").Value = "Percent Change"
+          CurrentWs.Range("M1").Value = "Total Stock Volume"
+    'Inserting Summary Column headers for bonus question
+         CurrentWs.Range("P2").Value = "Greatest % Increase"
+          CurrentWs.Range("P3").Value = "Greatest % Decrease"
+          CurrentWs.Range("P4").Value = "Greatest Total Volume"
+          CurrentWs.Range("Q1").Value = "Ticker"
+          CurrentWs.Range("R1").Value = "Value"
+         
+    End Sub
+    
+    
+
